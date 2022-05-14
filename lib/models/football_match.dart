@@ -1,8 +1,11 @@
+import 'package:football_app/utils/constants.dart';
+import 'package:football_app/utils/utils.dart';
+
 class FootballMatch {
   final int id;
-  final String status;
-  final String winner;
-  final int winnerId;
+  final MatchStatus status;
+  final String? winner;
+  final int? winnerId;
 
   FootballMatch(this.id, this.status, this.winner, this.winnerId);
 
@@ -10,9 +13,9 @@ class FootballMatch {
   FootballMatch.fromJson(Map<String, dynamic> json)
       :
         id = json["id"],
-        status = json["status"],
-        winner = json["score"]["winner"],
-        winnerId = getWinnerId(json);
+        status = Utils.matchStatusFromString(json["status"]),
+        winner = Utils.matchStatusFromString(json["status"]) == MatchStatus.FINISHED ? json["score"]["winner"] : null,
+        winnerId = Utils.matchStatusFromString(json["status"]) == MatchStatus.FINISHED ? getWinnerId(json) : null;
 
   static int getWinnerId(Map<String, dynamic> json) {
     if(json["score"]["winner"] == "HOME_TEAM") {
