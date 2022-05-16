@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:football_app/blocs/home_page/home_page_bloc.dart';
 import 'package:football_app/models/football_match.dart';
+import 'package:football_app/ui/common/loading_indicator.dart';
+import 'package:football_app/ui/pages/home/widgets/competition_wins_list_item.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -47,23 +49,15 @@ class _HomePageState extends State<HomePage> {
         builder: (BuildContext context, state) {
           if(state is HomePageLoading) {
             return const Center(
-              child: CircularProgressIndicator(),
+              child: LoadingIndicator(),
             );
           } else if (state is HomePageData) {
-            return Container(
+            return RefreshIndicator(
+              onRefresh: _onRefresh,
               child: ListView.builder(
                   itemCount: state.competitionWins.length,
                   itemBuilder: (context, index) {
-                     return Row(
-                       children: [
-                         Column(
-                           children: [
-                             Text(state.competitionWins[index].competition.name),
-                             Text(state.competitionWins[index].teamWithMostWins),
-                           ],
-                         ),
-                       ],
-                     );
+                     return CompetitionWinsListItem(competitionMostWins: state.competitionWins[index]);
               }),
             );
           } else {
@@ -75,6 +69,10 @@ class _HomePageState extends State<HomePage> {
 
       ) // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+
+  Future<void> _onRefresh() async {
+    BlocProvider.of<HomePageBloc>(context).add(FetchHomePageData());
   }
 
 
