@@ -10,9 +10,9 @@ abstract class HomePageState extends Equatable {
 class HomePageLoading extends HomePageState {}
 
 class HomePageData extends HomePageState {
-  final List<FootballMatch> matches;
+  final List<CompetitionMostWins> competitionWins;
 
-  const HomePageData(this.matches);
+  const HomePageData(this.competitionWins);
 }
 
 class HomePageError extends HomePageState {

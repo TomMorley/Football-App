@@ -50,8 +50,21 @@ class _HomePageState extends State<HomePage> {
               child: CircularProgressIndicator(),
             );
           } else if (state is HomePageData) {
-            return Center(
-              child: Text(state.matches.length.toString()),
+            return Container(
+              child: ListView.builder(
+                  itemCount: state.competitionWins.length,
+                  itemBuilder: (context, index) {
+                     return Row(
+                       children: [
+                         Column(
+                           children: [
+                             Text(state.competitionWins[index].competition.name),
+                             Text(state.competitionWins[index].teamWithMostWins),
+                           ],
+                         ),
+                       ],
+                     );
+              }),
             );
           } else {
             return const Center(

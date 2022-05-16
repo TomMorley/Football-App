@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
+import 'package:football_app/models/competition.dart';
 import 'package:football_app/models/data_response.dart';
 import 'package:football_app/models/football_match.dart';
+import 'package:football_app/models/season.dart';
 import 'package:football_app/utils/constants.dart';
 import 'package:intl/intl.dart';
 
@@ -27,7 +29,23 @@ class FootballDataApiProvider {
 
   }
 
-  Future<DataResponse> getCompetitionMatches(int competitionId, {DateTime? dateTo, DateTime? dateFrom}) async {
+  Future<DataResponse<Competition>> getCompetition(int competitionId) async {
+    try {
+      _dio.options.headers = {
+        "Accept" : "application/json",
+        "X-Auth-Token" : Constants.API_TOKEN
+      };
+
+
+      Response response = await _dio.get("$_apiBaseUrl$_competitionsEndpoint/$competitionId");
+
+      return DataResponse.fromData(Competition.fromJson(response.data));
+    } catch (e) {
+      return DataResponse<Competition>.withError(e.toString());
+    }
+  }
+
+  Future<DataResponse<List<FootballMatch>>> getCompetitionMatches(int competitionId, {DateTime? dateTo, DateTime? dateFrom}) async {
     try {
       _dio.options.headers = {
         "Accept" : "application/json",

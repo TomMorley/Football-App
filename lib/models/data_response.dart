@@ -1,5 +1,5 @@
-class DataResponse {
-  final dynamic data;
+class DataResponse<T> {
+  final T? data;
   String? error;
   int? errorCode;
 
@@ -12,10 +12,7 @@ class DataResponse {
   DataResponse.fromData(this.data);
 
 
-  static DataResponse withError(String error, {int? errorCode}) {
-    DataResponse response = DataResponse();
-    response.error = error;
-    response.errorCode = errorCode;
-    return response;
-  }
+  DataResponse.withError(this.error, {this.errorCode})
+    :
+      data = null;
 }
