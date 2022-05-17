@@ -41,7 +41,7 @@ class CompetitionWinsListItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 6.0,),
                 Text(
-                  competitionMostWins.teamWithMostWins,
+                  competitionMostWins.teamWithMostWins.name,
                   style: const TextStyle(
                       fontSize: 14
                   ),

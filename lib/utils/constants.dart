@@ -9,9 +9,9 @@ class Constants {
   static List<int> COMPETITION_IDS = [
     ENGLAND_TIER_1_ID,
     FRENCH_TIER_1_ID,
-    GERMAN_TIER_1_ID,
-    ITALY_TIER_1_ID,
-    SPAIN_TIER_1_ID,
+    // GERMAN_TIER_1_ID,
+    // ITALY_TIER_1_ID,
+    // SPAIN_TIER_1_ID,
   ];
 }
 

@@ -20,7 +20,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-
     // List<FootballMatch> matches = List.generate(json["matches"].length, (index) {
     //   return FootballMatch.fromJson(json["matches"][index]);
     // });
@@ -39,36 +38,64 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Football'),
-      ),
-      body: BlocBuilder(
-        bloc: BlocProvider.of<HomePageBloc>(context),
-        builder: (BuildContext context, state) {
-          if(state is HomePageLoading) {
-            return const Center(
-              child: LoadingIndicator(),
-            );
-          } else if (state is HomePageData) {
-            return RefreshIndicator(
-              onRefresh: _onRefresh,
-              child: ListView.builder(
-                  itemCount: state.competitionWins.length,
-                  itemBuilder: (context, index) {
-                     return CompetitionWinsListItem(competitionMostWins: state.competitionWins[index]);
-              }),
-            );
-          } else {
-            return const Center(
-              child: Text('Test'),
-            );
-          }
-        },
+        appBar: AppBar(
+          title: const Text('Football'),
+        ),
+        body: BlocListener<HomePageBloc, HomePageState>(
+          listener: (context, state) {
+            if(state is HomePageError) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(
+                    state.errorMessage,
+                    style: const TextStyle(
+                      color: Colors.white
+                    ),
+                ),
+                backgroundColor: Colors.red,
+              ));
+            }
+          },
+          child: BlocBuilder(
+            bloc: BlocProvider.of<HomePageBloc>(context),
+            builder: (BuildContext context, HomePageState state) {
+              return RefreshIndicator(
+                  child: getPageWidgets(state),
+                  onRefresh: _onRefresh
+              );
+            },
 
-      ) // This trailing comma makes auto-formatting nicer for build methods.
+          ),
+        ) // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+
+  Widget getPageWidgets(HomePageState state) {
+    if (state is HomePageLoading) {
+      return const Center(
+        child: LoadingIndicator(),
+      );
+    } else if (state is HomePageData) {
+      return ListView.builder(
+          itemCount: state.competitionWins.length,
+          itemBuilder: (context, index) {
+            return CompetitionWinsListItem(
+                competitionMostWins: state.competitionWins[index]);
+          });
+    } else {
+      return SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
+        child: Container(
+          child: Center(
+            child: Text("Pull to Refresh the Data"),
+          ),
+          height: MediaQuery
+              .of(context)
+              .size
+              .height,
+        ),
+      );
+    }
   }
 
   Future<void> _onRefresh() async {

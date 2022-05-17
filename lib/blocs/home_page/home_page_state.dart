@@ -7,6 +7,8 @@ abstract class HomePageState extends Equatable {
   List<Object> get props => [];
 }
 
+class HomePageBlankState extends HomePageState {}
+
 class HomePageLoading extends HomePageState {}
 
 class HomePageData extends HomePageState {

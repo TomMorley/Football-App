@@ -27,36 +27,52 @@ class HomePageBloc extends Bloc<HomePageEvent, HomePageState> {
   Future<void> fetchHomePageData(Emitter<HomePageState> emit) async {
     emit(HomePageLoading());
 
+
     List<CompetitionMostWins> competitionWinsList = [];
     for(int competitionId in Constants.COMPETITION_IDS) {
       DataResponse<Competition> competitionResponse = await repository.getCompetition(competitionId);
       if(competitionResponse.data != null) {
-        CompetitionMostWins competitionMostWins = await getCompetitionMostWins(emit, competitionResponse.data!);
-        competitionWinsList.add(competitionMostWins);
+        DataResponse<CompetitionMostWins> competitionMostWinsResponse = await getCompetitionMostWins(emit, competitionResponse.data!);
+        if(competitionMostWinsResponse.data != null) {
+          competitionWinsList.add(competitionMostWinsResponse.data!);
+        } else {
+          handleError(emit, competitionMostWinsResponse);
+        }
+      } else {
+        handleError(emit, competitionResponse);
       }
     }
 
-    emit(HomePageData(competitionWinsList));
+    if(competitionWinsList.isEmpty) {
+      emit(HomePageBlankState());
+    } else {
+      emit(HomePageData(competitionWinsList));
+    }
   }
 
-  Future<CompetitionMostWins> getCompetitionMostWins(Emitter<HomePageState> emit, Competition competition) async {
+  Future<DataResponse<CompetitionMostWins>> getCompetitionMostWins(Emitter<HomePageState> emit, Competition competition) async {
     DataResponse<List<FootballMatch>> matchesResponse = await getLastThirtyDaysMatches(competition);
-    if(matchesResponse.error != null) {
-      await handleError(emit, matchesResponse.error!);
-    }
-    List<String> winnerIds = [];
-    if(matchesResponse.data != null) {
-      final map = <String, int>{};
-      for(final FootballMatch match in matchesResponse.data!.where((element) => element.winningTeam != null)) {
 
-        map[match.winningTeam!.name] = map.containsKey(match.winningTeam!.name) ? map[match.winningTeam!.name]! + 1 : 1;
+    List<int> winnerIds = [];
+    if(matchesResponse.data != null) {
+      final map = <int, int>{};
+      for(final FootballMatch match in matchesResponse.data!.where((element) => element.winningTeam != null)) {
+        map[match.winningTeam!.id] = map.containsKey(match.winningTeam!.id) ? map[match.winningTeam!.id]! + 1 : 1;
       }
 
       winnerIds = map.keys.toList(growable: false);
       winnerIds.sort((k1, k2) => map[k2]!.compareTo(map[k1]!));
+    } else {
+      return DataResponse.withError(matchesResponse.error);
     }
 
-    return CompetitionMostWins(competition, winnerIds.first);
+    DataResponse<FootballTeam> footballTeamResponse = await repository.getTeam(winnerIds.first);
+    if(footballTeamResponse.data != null) {
+      return DataResponse.fromData(CompetitionMostWins(competition, footballTeamResponse.data!));
+    } else {
+      return DataResponse.withError(footballTeamResponse.error);
+    }
+
   }
 
   Future<DataResponse<List<FootballMatch>>> getLastThirtyDaysMatches(Competition competition) async {
@@ -69,8 +85,12 @@ class HomePageBloc extends Bloc<HomePageEvent, HomePageState> {
     return repository.getCompetitionMatches(competition.id, dateFrom: dateFrom, dateTo: DateTime.now());
   }
 
-  Future<void> handleError(Emitter<HomePageState> emit, String errorMessage) async {
-    emit(HomePageError(errorMessage));
+  Future<void> handleError(Emitter<HomePageState> emit, DataResponse errorResponse) async {
+    if(errorResponse.error != null) {
+      emit(HomePageError(errorResponse.error!));
+    } else {
+      emit(HomePageError("Something went wrong, please try again."));
+    }
   }
 
 

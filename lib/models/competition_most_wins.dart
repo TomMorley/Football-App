@@ -3,7 +3,7 @@ import 'package:football_app/models/football_team.dart';
 
 class CompetitionMostWins {
   final Competition competition;
-  final String teamWithMostWins;
+  final FootballTeam teamWithMostWins;
 
   CompetitionMostWins(this.competition, this.teamWithMostWins);
 }

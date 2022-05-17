@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:football_app/models/competition.dart';
 import 'package:football_app/models/data_response.dart';
 import 'package:football_app/models/football_match.dart';
+import 'package:football_app/models/football_team.dart';
 import 'package:football_app/models/season.dart';
 import 'package:football_app/utils/constants.dart';
 import 'package:intl/intl.dart';
@@ -13,6 +14,7 @@ class FootballDataApiProvider {
 
   final String _matchesEndpoint = "/matches";
   final String _competitionsEndpoint = "/competitions";
+  final String _teamsEndpoint = "/teams";
 
   static final FootballDataApiProvider _instance = FootballDataApiProvider._internal();
 
@@ -29,6 +31,25 @@ class FootballDataApiProvider {
 
   }
 
+  Future<DataResponse<FootballTeam>> getTeam(int teamId) async {
+    try {
+      _dio.options.headers = {
+        "Accept" : "application/json",
+        "X-Auth-Token" : Constants.API_TOKEN
+      };
+
+      Response response = await _dio.get("$_apiBaseUrl$_teamsEndpoint/$teamId");
+
+      return DataResponse.fromData(FootballTeam.fromJson(response.data));
+    }  on DioError catch (e) {
+      if (e.response != null) {
+        return DataResponse<FootballTeam>.withError(e.response!.data["message"]);
+      } else {
+        return DataResponse<FootballTeam>.withError(e.message);
+      }
+    }
+  }
+
   Future<DataResponse<Competition>> getCompetition(int competitionId) async {
     try {
       _dio.options.headers = {
@@ -40,8 +61,12 @@ class FootballDataApiProvider {
       Response response = await _dio.get("$_apiBaseUrl$_competitionsEndpoint/$competitionId");
 
       return DataResponse.fromData(Competition.fromJson(response.data));
-    } catch (e) {
-      return DataResponse<Competition>.withError(e.toString());
+    }  on DioError catch (e) {
+      if (e.response != null) {
+        return DataResponse<Competition>.withError(e.response!.data["message"]);
+      } else {
+        return DataResponse<Competition>.withError(e.message);
+      }
     }
   }
 
@@ -67,8 +92,12 @@ class FootballDataApiProvider {
       });
 
       return DataResponse.fromData(matches);
-    } catch(e) {
-      return DataResponse.withError(e.toString());
+    } on DioError catch (e) {
+      if (e.response != null) {
+        return DataResponse<List<FootballMatch>>.withError(e.response!.data["message"]);
+      } else {
+        return DataResponse<List<FootballMatch>>.withError(e.message);
+      }
     }
   }
 }
