@@ -15,9 +15,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Football',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.indigo,
       ),
       home: BlocProvider(
         create: (BuildContext context) => HomePageBloc(repository: DataManager())..add(FetchHomePageData()),
