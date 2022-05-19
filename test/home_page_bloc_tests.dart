@@ -31,7 +31,7 @@ final FootballMatch _mockFootballMatch = FootballMatch(12, MatchStatus.FINISHED,
 class MockFootballDataRepository extends Mock implements DataManager {
   @override
   Future<DataResponse<FootballTeam>> getTeam(int teamId) async {
-    return DataResponse.fromData(_mockTeam);
+    return DataResponse.fromData(FootballTeam(teamId, 'Liverpool'));
   }
 
   @override
@@ -50,6 +50,19 @@ class MockFootballDataRepository extends Mock implements DataManager {
 void main() {
   final MockFootballDataRepository mockFootballDataRepository = MockFootballDataRepository();
 
+  test('Team with ID 28 has Won the most Games given List of Football Matches', () async {
+    final bloc = HomePageBloc(repository: mockFootballDataRepository);
+    int teamWithMostWinsId = 28;
+
+    List<FootballMatch> matches = [];
+    matches.addAll(List.generate(10, (index) => FootballMatch(index + 1, MatchStatus.FINISHED, 'HOME_TEAM',FootballTeam(index + 1, 'Test FC'))).toList());
+    matches.addAll(List.generate(10, (index) => FootballMatch(index + 1, MatchStatus.FINISHED, 'HOME_TEAM',FootballTeam(teamWithMostWinsId, 'Most Wins FC'))).toList());
+
+
+    DataResponse<FootballTeam> teamWithMostWinsResponse = await bloc.getTeamWithMostWins(matches);
+
+    expect(teamWithMostWinsResponse.data!.id, teamWithMostWinsId);
+  });
 
   blocTest('Emits [HomePageLoading, HomePageData] when Successful', build:() {
       return HomePageBloc(repository: mockFootballDataRepository);

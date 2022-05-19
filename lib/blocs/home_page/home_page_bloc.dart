@@ -57,29 +57,40 @@ class HomePageBloc extends Bloc<HomePageEvent, HomePageState> {
   Future<DataResponse<CompetitionMostWins>> getCompetitionMostWins(Emitter<HomePageState> emit, Competition competition) async {
     DataResponse<List<FootballMatch>> matchesResponse = await getLastThirtyDaysMatches(competition);
 
-    List<int> winnerIds = [];
     if(matchesResponse.data != null) {
-      //Create Map of <teamId, numberOfMatchesWon> from last 30 Days Matches Data
-      final teamIdMatchesWon = <int, int>{};
-      for(final FootballMatch match in matchesResponse.data!.where((element) => element.winningTeam != null)) {
-        teamIdMatchesWon[match.winningTeam!.id] = teamIdMatchesWon.containsKey(match.winningTeam!.id) ? teamIdMatchesWon[match.winningTeam!.id]! + 1 : 1;
+      DataResponse<FootballTeam> teamWithMostWinsResponse = await getTeamWithMostWins(matchesResponse.data!);
+
+      if(teamWithMostWinsResponse.data != null) {
+        return DataResponse.fromData(CompetitionMostWins(competition, teamWithMostWinsResponse.data!));
+      } else {
+        return DataResponse.withError(teamWithMostWinsResponse.error);
       }
 
-      //Sort map by number of Matches Won
-      winnerIds = teamIdMatchesWon.keys.toList(growable: false);
-      winnerIds.sort((k1, k2) => teamIdMatchesWon[k2]!.compareTo(teamIdMatchesWon[k1]!));
     } else {
       return DataResponse.withError(matchesResponse.error);
     }
+  }
+
+  Future<DataResponse<FootballTeam>> getTeamWithMostWins(List<FootballMatch> matches) async {
+    List<int> winnerIds = [];
+    //Create Map of <teamId, numberOfMatchesWon> from last 30 Days Matches Data
+    final teamIdMatchesWon = <int, int>{};
+    for(final FootballMatch match in matches.where((match) => match.winningTeam != null)) {
+      teamIdMatchesWon[match.winningTeam!.id] = teamIdMatchesWon.containsKey(match.winningTeam!.id) ? teamIdMatchesWon[match.winningTeam!.id]! + 1 : 1;
+    }
+
+    //Sort map by number of Matches Won
+    winnerIds = teamIdMatchesWon.keys.toList(growable: false);
+    winnerIds.sort((k1, k2) => teamIdMatchesWon[k2]!.compareTo(teamIdMatchesWon[k1]!));
+
 
     //Fetch Details of Team with most wins
     DataResponse<FootballTeam> footballTeamResponse = await repository.getTeam(winnerIds.first);
     if(footballTeamResponse.data != null) {
-      return DataResponse.fromData(CompetitionMostWins(competition, footballTeamResponse.data!));
+      return DataResponse.fromData(footballTeamResponse.data);
     } else {
       return DataResponse.withError(footballTeamResponse.error);
     }
-
   }
 
   Future<DataResponse<List<FootballMatch>>> getLastThirtyDaysMatches(Competition competition) async {
